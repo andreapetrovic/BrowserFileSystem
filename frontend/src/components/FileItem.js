@@ -52,7 +52,7 @@ const FileItem = ({ file, onOpenFolder, onRename, onDelete }) => {
         {file.isFolder && (
           <button
             className="action-btn open-btn"
-            onClick={() => onOpenFolder(file.id)}
+            onClick={() => onOpenFolder(file)}
             title="Open folder"
           >
             <FiArrowRight size={16} />

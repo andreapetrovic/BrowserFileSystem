@@ -3,6 +3,7 @@ package com.browserfilesystem.model;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -23,6 +24,11 @@ public class FileItem {
     private boolean isFolder;
     private Instant createdAt;
     private Instant updatedAt;
+
+    @JsonProperty("isFolder")
+    public boolean isFolder() {
+        return isFolder;
+    }
 
     public FileItem(String name, String parentId, boolean isFolder) {
         this.name = name;

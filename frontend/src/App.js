@@ -6,6 +6,7 @@ import api from './services/api';
 function App() {
   const [files, setFiles] = useState([]);
   const [currentFolder, setCurrentFolder] = useState(null);
+  const [currentFolderName, setCurrentFolderName] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [backendError, setBackendError] = useState(false);
@@ -42,8 +43,8 @@ function App() {
     try {
       await api.post('/files/create-file', null, {
         params: {
-          name: name,
-          parentId: currentFolder || ''
+          name,
+          ...(currentFolder ? { parentId: currentFolder } : {})
         }
       });
       fetchFiles();
@@ -56,8 +57,8 @@ function App() {
     try {
       await api.post('/files/create-folder', null, {
         params: {
-          name: name,
-          parentId: currentFolder || ''
+          name,
+          ...(currentFolder ? { parentId: currentFolder } : {})
         }
       });
       fetchFiles();
@@ -86,12 +87,14 @@ function App() {
     }
   };
 
-  const handleOpenFolder = (folderId) => {
-    setCurrentFolder(folderId);
+  const handleOpenFolder = (folder) => {
+    setCurrentFolder(folder.id);
+    setCurrentFolderName(folder.name);
   };
 
   const handleGoBack = () => {
     setCurrentFolder(null);
+    setCurrentFolderName(null);
   };
 
   return (
@@ -106,6 +109,7 @@ function App() {
             files={files}
             loading={loading}
             currentFolder={currentFolder}
+            currentFolderName={currentFolderName}
             onCreateFile={handleCreateFile}
             onCreateFolder={handleCreateFolder}
             onRename={handleRename}

@@ -6,6 +6,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -17,8 +18,10 @@ public class FileService {
     private static final int SEARCH_LIMIT = 10;
 
     public List<FileItem> listFilesByParent(String parentId) {
-        if (parentId == null) {
-            return fileRepository.findByParentId(null);
+        if (parentId == null || parentId.isBlank()) {
+            List<FileItem> rootFiles = new ArrayList<>(fileRepository.findByParentId(null));
+            rootFiles.addAll(fileRepository.findByParentId(""));
+            return rootFiles;
         }
         return fileRepository.findByParentId(parentId);
     }
@@ -28,13 +31,17 @@ public class FileService {
     }
 
     public FileItem createFile(String name, String parentId) {
-        FileItem file = new FileItem(name, parentId, false);
+        FileItem file = new FileItem(name, normalizeParentId(parentId), false);
         return fileRepository.save(file);
     }
 
     public FileItem createFolder(String name, String parentId) {
-        FileItem folder = new FileItem(name, parentId, true);
+        FileItem folder = new FileItem(name, normalizeParentId(parentId), true);
         return fileRepository.save(folder);
+    }
+
+    private String normalizeParentId(String parentId) {
+        return parentId == null || parentId.isBlank() ? null : parentId;
     }
 
     public Optional<FileItem> renameFile(String id, String newName) {

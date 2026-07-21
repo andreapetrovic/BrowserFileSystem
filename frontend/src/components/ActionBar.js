@@ -4,6 +4,7 @@ import { FiArrowLeft, FiSearch } from 'react-icons/fi';
 
 const ActionBar = ({
   currentFolder,
+  currentFolderName,
   onGoBack,
   newFileName,
   setNewFileName,
@@ -12,8 +13,7 @@ const ActionBar = ({
   setNewFolderName,
   onCreateFolder,
   searchQuery,
-  setSearchQuery,
-  onSearch
+  setSearchQuery
 }) => {
   return (
     <div className="action-bar">
@@ -25,23 +25,8 @@ const ActionBar = ({
           </button>
         )}
         <span className="current-location">
-          {currentFolder ? 'Subfolder' : 'Root Folder'}
+          {currentFolder ? currentFolderName : 'Root Folder'}
         </span>
-      </div>
-
-      <div className="search-box">
-        <FiSearch size={18} />
-        <input
-          type="text"
-          placeholder="Search files..."
-          value={searchQuery}
-          onChange={(e) => {
-            setSearchQuery(e.target.value);
-            if (e.target.value.length > 0) {
-              onSearch(e.target.value);
-            }
-          }}
-        />
       </div>
 
       <div className="action-inputs">
@@ -66,6 +51,16 @@ const ActionBar = ({
           />
           <button onClick={onCreateFolder}>Create Folder</button>
         </div>
+      </div>
+
+      <div className="search-box">
+        <FiSearch size={18} />
+        <input
+          type="text"
+          placeholder="Search files..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+        />
       </div>
     </div>
   );
