@@ -8,6 +8,7 @@ function App() {
   const [currentFolder, setCurrentFolder] = useState(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [backendError, setBackendError] = useState(false);
 
   useEffect(() => {
     fetchFiles();
@@ -16,13 +17,21 @@ function App() {
   const fetchFiles = async () => {
     setLoading(true);
     setError(null);
+    setBackendError(false);
     try {
       const response = await api.get('/files/list', {
         params: currentFolder ? { parentId: currentFolder } : {}
       });
       setFiles(response.data);
+      setBackendError(false);
     } catch (err) {
-      setError('Failed to load files: ' + err.message);
+      if (err.response?.status === 404 || err.code === 'ERR_NETWORK' || !err.response) {
+        setBackendError(true);
+        setError('Cannot connect to backend. Make sure the server is running.');
+      } else {
+        setError('Failed to load files: ' + err.message);
+      }
+      setFiles([]);
       console.error(err);
     } finally {
       setLoading(false);
@@ -92,17 +101,19 @@ function App() {
       </header>
       <main className="app-main">
         {error && <div className="error-message">{error}</div>}
-        <FileExplorer
-          files={files}
-          loading={loading}
-          currentFolder={currentFolder}
-          onCreateFile={handleCreateFile}
-          onCreateFolder={handleCreateFolder}
-          onRename={handleRename}
-          onDelete={handleDelete}
-          onOpenFolder={handleOpenFolder}
-          onGoBack={handleGoBack}
-        />
+        {!backendError && (
+          <FileExplorer
+            files={files}
+            loading={loading}
+            currentFolder={currentFolder}
+            onCreateFile={handleCreateFile}
+            onCreateFolder={handleCreateFolder}
+            onRename={handleRename}
+            onDelete={handleDelete}
+            onOpenFolder={handleOpenFolder}
+            onGoBack={handleGoBack}
+          />
+        )}
       </main>
     </div>
   );

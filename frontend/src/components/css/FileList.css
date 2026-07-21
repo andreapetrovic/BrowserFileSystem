@@ -25,8 +25,6 @@
   text-align: center;
   padding: 60px 20px;
   color: #999;
-  font-size: 16px;
-  background: white;
-  border-radius: 4px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  font-size: 18px;
+  font-weight: 500;
 }
