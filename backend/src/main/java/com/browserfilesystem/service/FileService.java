@@ -8,11 +8,13 @@ import org.springframework.stereotype.Service;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class FileService {
     private final FileItemRepository fileRepository;
+    private static final int SEARCH_LIMIT = 10;
 
     public List<FileItem> listFilesByParent(String parentId) {
         if (parentId == null) {
@@ -37,9 +39,15 @@ public class FileService {
 
     public Optional<FileItem> renameFile(String id, String newName) {
         return fileRepository.findById(id).map(file -> {
-            file.setName(newName);
-            file.setUpdatedAt(Instant.now());
-            return fileRepository.save(file);
+            FileItem updatedFile = new FileItem(
+                    id,
+                    newName,
+                    file.getParentId(),
+                    file.isFolder(),
+                    file.getCreatedAt(),
+                    Instant.now()
+            );
+            return fileRepository.save(updatedFile);
         });
     }
 
@@ -52,5 +60,25 @@ public class FileService {
             }
         }
         fileRepository.deleteById(id);
+    }
+
+    public List<FileItem> searchFilesByName(String namePrefix) {
+        if (namePrefix == null || namePrefix.trim().isEmpty()) {
+            return List.of();
+        }
+        return fileRepository.findByNameIgnoreCaseStartingWith(namePrefix)
+                .stream()
+                .limit(SEARCH_LIMIT)
+                .collect(Collectors.toList());
+    }
+
+    public List<FileItem> searchFilesByNameInFolder(String namePrefix, String parentId) {
+        if (namePrefix == null || namePrefix.trim().isEmpty()) {
+            return List.of();
+        }
+        return fileRepository.findByNameIgnoreCaseStartingWithAndParentId(namePrefix, parentId)
+                .stream()
+                .limit(SEARCH_LIMIT)
+                .collect(Collectors.toList());
     }
 }

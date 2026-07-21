@@ -58,4 +58,16 @@ public class FileController {
         fileService.deleteFile(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/search")
+    public ResponseEntity<List<FileItem>> searchFiles(@RequestParam String query) {
+        return ResponseEntity.ok(fileService.searchFilesByName(query));
+    }
+
+    @GetMapping("/search/folder")
+    public ResponseEntity<List<FileItem>> searchFilesInFolder(
+            @RequestParam String query,
+            @RequestParam String parentId) {
+        return ResponseEntity.ok(fileService.searchFilesByNameInFolder(query, parentId));
+    }
 }

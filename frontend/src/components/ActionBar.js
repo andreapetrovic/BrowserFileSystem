@@ -1,10 +1,6 @@
 import React from 'react';
 import './css/ActionBar.css';
-import { FiArrowLeft } from 'react-icons/fi';  // Import icon
-// Other popular icons:
-// import { AiOutlineArrowLeft } from 'react-icons/ai';
-// import { MdArrowBack } from 'react-icons/md';
-// import { BiArrowBack } from 'react-icons/bi';
+import { FiArrowLeft, FiSearch } from 'react-icons/fi';
 
 const ActionBar = ({
   currentFolder,
@@ -14,20 +10,38 @@ const ActionBar = ({
   onCreateFile,
   newFolderName,
   setNewFolderName,
-  onCreateFolder
+  onCreateFolder,
+  searchQuery,
+  setSearchQuery,
+  onSearch
 }) => {
   return (
     <div className="action-bar">
       <div className="breadcrumb">
         {currentFolder && (
           <button className="back-btn" onClick={onGoBack} title="Go back">
-            <FiArrowLeft size={20} />  {/* Icon with size */}
+            <FiArrowLeft size={20} />
             Back
           </button>
         )}
         <span className="current-location">
           {currentFolder ? 'Subfolder' : 'Root Folder'}
         </span>
+      </div>
+
+      <div className="search-box">
+        <FiSearch size={18} />
+        <input
+          type="text"
+          placeholder="Search files..."
+          value={searchQuery}
+          onChange={(e) => {
+            setSearchQuery(e.target.value);
+            if (e.target.value.length > 0) {
+              onSearch(e.target.value);
+            }
+          }}
+        />
       </div>
 
       <div className="action-inputs">
