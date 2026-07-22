@@ -3,6 +3,7 @@ package com.browserfilesystem.controller;
 import com.browserfilesystem.model.FileItem;
 import com.browserfilesystem.service.FileService;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,8 +18,11 @@ public class FileController {
     private final FileService fileService;
 
     @GetMapping("/list")
-    public ResponseEntity<List<FileItem>> listFiles(@RequestParam(required = false) String parentId) {
-        return ResponseEntity.ok(fileService.listFilesByParent(parentId));
+    public ResponseEntity<Page<FileItem>> listFiles(
+            @RequestParam(required = false) String parentId,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "100") int size) {
+        return ResponseEntity.ok(fileService.listFilesByParent(parentId, page, size));
     }
 
     @GetMapping("/{id}")

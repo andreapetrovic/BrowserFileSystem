@@ -25,7 +25,7 @@ function App() {
         : await api.get('/files/list', {
             params: currentFolder ? { parentId: currentFolder } : {}
           });
-      setFiles(response.data);
+      setFiles(query ? response.data : response.data.content);
       setBackendError(false);
     } catch (err) {
       if (err.response?.status === 404 || err.code === 'ERR_NETWORK' || !err.response) {

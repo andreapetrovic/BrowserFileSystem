@@ -10,7 +10,7 @@ import java.util.List;
 
 @Repository
 public interface FileItemRepository extends MongoRepository<FileItem, String> {
-    List<FileItem> findByParentId(String parentId);
+    Page<FileItem> findByParentId(String parentId, Pageable pageable);
     long deleteByPathStartingWith(String path);
     List<FileItem> findByNormalizedName(String normalizedName);
     List<FileItem> findByNormalizedNameAndParentId(String normalizedName, String parentId);

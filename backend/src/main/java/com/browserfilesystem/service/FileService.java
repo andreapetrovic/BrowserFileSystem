@@ -3,6 +3,7 @@ package com.browserfilesystem.service;
 import com.browserfilesystem.model.FileItem;
 import com.browserfilesystem.repository.FileItemRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
@@ -25,8 +26,16 @@ public class FileService {
             Sort.by(Sort.Order.asc("normalizedName"), Sort.Order.asc("id"))
     );
 
-    public List<FileItem> listFilesByParent(String parentId) {
-        return fileRepository.findByParentId(normalizeParentId(parentId));
+    public Page<FileItem> listFilesByParent(String parentId, int page, int size) {
+        if (page < 0 || size < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Page must be non-negative and size must be positive");
+        }
+        PageRequest pageable = PageRequest.of(
+                page,
+                size,
+                Sort.by(Sort.Order.asc("normalizedName"), Sort.Order.asc("id"))
+        );
+        return fileRepository.findByParentId(normalizeParentId(parentId), pageable);
     }
 
     public Optional<FileItem> getFileById(String id) {
