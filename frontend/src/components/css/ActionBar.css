@@ -32,9 +32,31 @@
   background-color: #e0e0e0;
 }
 
-.current-location {
+.breadcrumb-path {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.breadcrumb-link {
+  border: 0;
+  padding: 0;
+  background: transparent;
   color: #666;
   font-size: 14px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.breadcrumb-link:hover,
+.breadcrumb-link:focus {
+  color: #0066cc;
+  text-decoration: underline;
+}
+
+.breadcrumb-separator {
+  color: #999;
 }
 
 .action-inputs {

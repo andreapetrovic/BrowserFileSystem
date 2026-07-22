@@ -8,7 +8,8 @@ const FileExplorer = ({
   files,
   loading,
   currentFolder,
-  currentFolderName,
+  folderPath,
+  onNavigateToFolder,
   searchQuery,
   setSearchQuery,
   onCreateFile,
@@ -67,7 +68,8 @@ const FileExplorer = ({
     <div className="file-explorer">
       <ActionBar
         currentFolder={currentFolder}
-        currentFolderName={currentFolderName}
+        folderPath={folderPath}
+        onNavigateToFolder={onNavigateToFolder}
         onGoBack={onGoBack}
         newFileName={newFileName}
         setNewFileName={setNewFileName}

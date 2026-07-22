@@ -37,7 +37,18 @@ const FileItem = ({ file, onOpenFolder, onRename, onDelete }) => {
             autoFocus
           />
         ) : (
-          <span className="file-name-text">{file.name}</span>
+          file.isFolder ? (
+            <button
+              type="button"
+              className="file-name-text folder-name-button"
+              onClick={() => onOpenFolder(file)}
+              title={`Open ${file.name}`}
+            >
+              {file.name}
+            </button>
+          ) : (
+            <span className="file-name-text">{file.name}</span>
+          )
         )}
       </div>
 

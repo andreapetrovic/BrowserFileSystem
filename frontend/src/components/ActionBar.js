@@ -4,7 +4,8 @@ import { FiArrowLeft, FiSearch } from 'react-icons/fi';
 
 const ActionBar = ({
   currentFolder,
-  currentFolderName,
+  folderPath,
+  onNavigateToFolder,
   onGoBack,
   newFileName,
   setNewFileName,
@@ -26,9 +27,23 @@ const ActionBar = ({
             Back
           </button>
         )}
-        <span className="current-location">
-          {currentFolder ? currentFolderName : 'Root Folder'}
-        </span>
+        <nav className="breadcrumb-path" aria-label="Folder path">
+          <button type="button" className="breadcrumb-link" onClick={() => onNavigateToFolder(-1)}>
+            Root Folder
+          </button>
+          {folderPath.map((folder, index) => (
+            <React.Fragment key={folder.id}>
+              <span className="breadcrumb-separator" aria-hidden="true">/</span>
+              <button
+                type="button"
+                className="breadcrumb-link"
+                onClick={() => onNavigateToFolder(index)}
+              >
+                {folder.name}
+              </button>
+            </React.Fragment>
+          ))}
+        </nav>
       </div>
 
       <div className="action-inputs">

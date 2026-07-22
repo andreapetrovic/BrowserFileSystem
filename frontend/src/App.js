@@ -5,12 +5,12 @@ import api from './services/api';
 
 function App() {
   const [files, setFiles] = useState([]);
-  const [currentFolder, setCurrentFolder] = useState(null);
-  const [currentFolderName, setCurrentFolderName] = useState(null);
+  const [folderPath, setFolderPath] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [backendError, setBackendError] = useState(false);
+  const currentFolder = folderPath.at(-1)?.id ?? null;
 
   const fetchFiles = useCallback(async () => {
     setLoading(true);
@@ -94,13 +94,18 @@ function App() {
   };
 
   const handleOpenFolder = (folder) => {
-    setCurrentFolder(folder.id);
-    setCurrentFolderName(folder.name);
+    setFolderPath((path) => [...path, { id: folder.id, name: folder.name }]);
+    setSearchQuery('');
   };
 
   const handleGoBack = () => {
-    setCurrentFolder(null);
-    setCurrentFolderName(null);
+    setFolderPath((path) => path.slice(0, -1));
+    setSearchQuery('');
+  };
+
+  const handleNavigateToFolder = (index) => {
+    setFolderPath((path) => path.slice(0, index + 1));
+    setSearchQuery('');
   };
 
   return (
@@ -115,7 +120,8 @@ function App() {
             files={files}
             loading={loading}
             currentFolder={currentFolder}
-            currentFolderName={currentFolderName}
+            folderPath={folderPath}
+            onNavigateToFolder={handleNavigateToFolder}
             searchQuery={searchQuery}
             setSearchQuery={setSearchQuery}
             onCreateFile={handleCreateFile}
