@@ -1,8 +1,9 @@
 package com.browserfilesystem.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Data;
+import lombok.Getter;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
@@ -12,7 +13,8 @@ import org.springframework.data.mongodb.core.mapping.Document;
 import java.time.Instant;
 import java.util.Locale;
 
-@Data
+@Getter
+@Setter
 @NoArgsConstructor
 @AllArgsConstructor
 @Document(collection = "files")
@@ -31,20 +33,16 @@ public class FileItem {
     @Indexed
     private String path;
 
-    private boolean isFolder;
+    @JsonProperty("isFolder")
+    private boolean folder;
     private Instant createdAt;
     private Instant updatedAt;
-
-    @JsonProperty("isFolder")
-    public boolean isFolder() {
-        return isFolder;
-    }
 
     public FileItem(String name, String parentId, boolean isFolder) {
         this.name = name;
         this.normalizedName = normalizeName(name);
         this.parentId = parentId;
-        this.isFolder = isFolder;
+        this.folder = isFolder;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
     }
@@ -55,7 +53,7 @@ public class FileItem {
         this.normalizedName = normalizeName(name);
         this.parentId = parentId;
         this.path = path;
-        this.isFolder = isFolder;
+        this.folder = isFolder;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();
     }

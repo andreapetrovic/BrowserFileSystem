@@ -23,7 +23,7 @@ const FileItem = ({ file, onOpenFolder, onRename, onDelete }) => {
       <div className="file-name-col">
         {/* Icon instead of emoji */}
         <span className="file-icon">
-          {file.isFolder ? <FiFolder size={20} /> : <FiFile size={20} />}
+          {file.folder ? <FiFolder size={20} /> : <FiFile size={20} />}
         </span>
 
         {isRenaming ? (
@@ -37,7 +37,7 @@ const FileItem = ({ file, onOpenFolder, onRename, onDelete }) => {
             autoFocus
           />
         ) : (
-          file.isFolder ? (
+          file.folder ? (
             <button
               type="button"
               className="file-name-text folder-name-button"
@@ -53,7 +53,7 @@ const FileItem = ({ file, onOpenFolder, onRename, onDelete }) => {
       </div>
 
       <div className="file-type-col">
-        {file.isFolder ? 'Folder' : 'File'}
+        {file.folder ? 'Folder' : 'File'}
       </div>
 
       <div className="file-date-col">
@@ -61,7 +61,7 @@ const FileItem = ({ file, onOpenFolder, onRename, onDelete }) => {
       </div>
 
       <div className="file-actions-col">
-        {file.isFolder && (
+        {file.folder && (
           <button
             className="action-btn open-btn"
             onClick={() => onOpenFolder(file)}
