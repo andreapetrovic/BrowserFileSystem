@@ -3,7 +3,9 @@ package com.browserfilesystem.service;
 import com.browserfilesystem.model.FileItem;
 import com.browserfilesystem.repository.FileItemRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
 import java.util.ArrayList;
@@ -31,21 +33,35 @@ public class FileService {
     }
 
     public FileItem createFile(String name, String parentId) {
-        FileItem file = new FileItem(name, normalizeParentId(parentId), false);
+        String normalizedParentId = validateAndNormalizeParentId(parentId);
+        ensureNameIsAvailable(name, normalizedParentId, null);
+        FileItem file = new FileItem(name, normalizedParentId, false);
         return fileRepository.save(file);
     }
 
     public FileItem createFolder(String name, String parentId) {
-        FileItem folder = new FileItem(name, normalizeParentId(parentId), true);
+        String normalizedParentId = validateAndNormalizeParentId(parentId);
+        ensureNameIsAvailable(name, normalizedParentId, null);
+        FileItem folder = new FileItem(name, normalizedParentId, true);
         return fileRepository.save(folder);
     }
 
-    private String normalizeParentId(String parentId) {
-        return parentId == null || parentId.isBlank() ? null : parentId;
+    private String validateAndNormalizeParentId(String parentId) {
+        if (parentId == null || parentId.isBlank()) {
+            return null;
+        }
+
+        FileItem parent = fileRepository.findById(parentId)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Parent folder not found"));
+        if (!parent.isFolder()) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parent must be a folder");
+        }
+        return parentId;
     }
 
     public Optional<FileItem> renameFile(String id, String newName) {
         return fileRepository.findById(id).map(file -> {
+            ensureNameIsAvailable(newName, file.getParentId(), file.getId());
             FileItem updatedFile = new FileItem(
                     id,
                     newName,
@@ -56,6 +72,24 @@ public class FileService {
             );
             return fileRepository.save(updatedFile);
         });
+    }
+
+    private void ensureNameIsAvailable(String name, String parentId, String excludedFileId) {
+        boolean duplicateExists = findFilesByNameInParent(name, parentId).stream()
+                .anyMatch(file -> !file.getId().equals(excludedFileId));
+        if (duplicateExists) {
+            throw new ResponseStatusException(HttpStatus.CONFLICT, "An item with this name already exists in the folder");
+        }
+    }
+
+    private List<FileItem> findFilesByNameInParent(String name, String parentId) {
+        if (parentId != null) {
+            return fileRepository.findByNameIgnoreCaseAndParentId(name, parentId);
+        }
+
+        List<FileItem> rootItems = new ArrayList<>(fileRepository.findByNameIgnoreCaseAndParentId(name, null));
+        rootItems.addAll(fileRepository.findByNameIgnoreCaseAndParentId(name, ""));
+        return rootItems;
     }
 
     public void deleteFile(String id) {
