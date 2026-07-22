@@ -50,7 +50,7 @@ It runs on `http://localhost:3000` and calls the backend at `http://localhost:80
 - Run backend tests: `cd backend && mvn test`
 - Run backend tests: `cd backend && ./mvnw test`
 - Build the frontend: `cd frontend && npm run build`
-- Debug the backend from your IDE by running `BrowserFileSystemApplication` with the `dev` profile or with the normal Spring Boot configuration.
+- Debug the backend from your IDE by debugging `BrowserFileSystemApplication` with the `dev` profile or with the normal Spring Boot configuration.
 
 ## Search behavior
 

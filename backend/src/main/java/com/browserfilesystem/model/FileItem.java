@@ -9,6 +9,7 @@ import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.CompoundIndex;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.data.mongodb.core.mapping.Field;
 
 import java.time.Instant;
 import java.util.Locale;
@@ -34,6 +35,7 @@ public class FileItem {
     private String path;
 
     @JsonProperty("isFolder")
+    @Field("isFolder")
     private boolean folder;
     private Instant createdAt;
     private Instant updatedAt;
