@@ -32,10 +32,11 @@ const FileExplorer = ({
 
     const timer = setTimeout(async () => {
       try {
-        const response = await api.get(
-          currentFolder ? '/files/autocomplete/folder' : '/files/autocomplete',
-          { params: currentFolder ? { query, parentId: currentFolder } : { query } }
-        );
+        const response = await api.get('/files/search', {
+          params: currentFolder
+            ? { name: query, exact: false, parentId: currentFolder }
+            : { name: query, exact: false }
+        });
         setSuggestions(response.data);
       } catch {
         setSuggestions([]);

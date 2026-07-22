@@ -138,7 +138,7 @@ public class FileService {
         if (namePrefix == null || namePrefix.trim().isEmpty()) {
             return List.of();
         }
-        return fileRepository.findByNormalizedNameStartingWithAndIsFolderFalse(
+        return fileRepository.findByNormalizedNameStartingWithAndFolderFalse(
                 FileItem.normalizeName(namePrefix.trim()), AUTOCOMPLETE_PAGE).getContent();
     }
 
@@ -146,7 +146,7 @@ public class FileService {
         if (namePrefix == null || namePrefix.trim().isEmpty()) {
             return List.of();
         }
-        return fileRepository.findByNormalizedNameStartingWithAndParentIdAndIsFolderFalse(
+        return fileRepository.findByNormalizedNameStartingWithAndParentIdAndFolderFalse(
                 FileItem.normalizeName(namePrefix.trim()), normalizeParentId(parentId), AUTOCOMPLETE_PAGE).getContent();
     }
 }

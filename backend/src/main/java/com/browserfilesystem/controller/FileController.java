@@ -1,11 +1,13 @@
 package com.browserfilesystem.controller;
 
+import com.browserfilesystem.dto.CreateItemRequest;
 import com.browserfilesystem.dto.FileItemResponse;
+import com.browserfilesystem.dto.RenameFileRequest;
 import com.browserfilesystem.service.FileService;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.http.HttpStatus;
@@ -22,7 +24,7 @@ import java.util.List;
 public class FileController {
     private final FileService fileService;
 
-    @GetMapping("/list")
+    @GetMapping
     public ResponseEntity<Page<FileItemResponse>> listFiles(
             @RequestParam(required = false) String parentId,
             @RequestParam(defaultValue = "0") @Min(0) int page,
@@ -38,27 +40,16 @@ public class FileController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
-    @PostMapping("/create-file")
-    public ResponseEntity<FileItemResponse> createFile(
-            @RequestParam @NotBlank @Size(max = 255) String name,
-            @RequestParam(required = false) String parentId) {
+    @PostMapping
+    public ResponseEntity<FileItemResponse> createFile(@Valid @RequestBody CreateItemRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
-                .body(FileItemResponse.from(fileService.createFile(name, parentId)));
+                .body(FileItemResponse.from(fileService.createFile(request.name(), request.parentId())));
     }
 
-    @PostMapping("/create-folder")
-    public ResponseEntity<FileItemResponse> createFolder(
-            @RequestParam @NotBlank @Size(max = 255) String name,
-            @RequestParam(required = false) String parentId) {
-        return ResponseEntity.status(HttpStatus.CREATED)
-                .body(FileItemResponse.from(fileService.createFolder(name, parentId)));
-    }
-
-    @PutMapping("/{id}/rename")
-    public ResponseEntity<FileItemResponse> renameFile(
-            @PathVariable @NotBlank String id,
-            @RequestParam @NotBlank @Size(max = 255) String newName) {
-        return fileService.renameFile(id, newName)
+    @PatchMapping("/{id}")
+    public ResponseEntity<FileItemResponse> renameFile(@PathVariable @NotBlank String id,
+                                                         @Valid @RequestBody RenameFileRequest request) {
+        return fileService.renameFile(id, request.name())
                 .map(FileItemResponse::from)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
@@ -72,34 +63,20 @@ public class FileController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<FileItemResponse>> searchFiles(@RequestParam @NotBlank String query) {
-        return ResponseEntity.ok(fileService.searchFilesByName(query).stream()
+    public ResponseEntity<List<FileItemResponse>> searchFiles(
+            @RequestParam @NotBlank String name,
+            @RequestParam(defaultValue = "true") boolean exact,
+            @RequestParam(required = false) String parentId) {
+        List<FileItemResponse> results = (exact
+                ? (parentId == null
+                    ? fileService.searchFilesByName(name)
+                    : fileService.searchFilesByNameInFolder(name, parentId))
+                : (parentId == null
+                    ? fileService.getAutocompleteSuggestions(name)
+                    : fileService.getAutocompleteSuggestionsInFolder(name, parentId)))
+                .stream()
                 .map(FileItemResponse::from)
-                .toList());
-    }
-
-    @GetMapping("/search/folder")
-    public ResponseEntity<List<FileItemResponse>> searchFilesInFolder(
-            @RequestParam @NotBlank String query,
-            @RequestParam String parentId) {
-        return ResponseEntity.ok(fileService.searchFilesByNameInFolder(query, parentId).stream()
-                .map(FileItemResponse::from)
-                .toList());
-    }
-
-    @GetMapping("/autocomplete")
-    public ResponseEntity<List<FileItemResponse>> autocomplete(@RequestParam @NotBlank String query) {
-        return ResponseEntity.ok(fileService.getAutocompleteSuggestions(query).stream()
-                .map(FileItemResponse::from)
-                .toList());
-    }
-
-    @GetMapping("/autocomplete/folder")
-    public ResponseEntity<List<FileItemResponse>> autocompleteInFolder(
-            @RequestParam @NotBlank String query,
-            @RequestParam String parentId) {
-        return ResponseEntity.ok(fileService.getAutocompleteSuggestionsInFolder(query, parentId).stream()
-                .map(FileItemResponse::from)
-                .toList());
+                .toList();
+        return ResponseEntity.ok(results);
     }
 }

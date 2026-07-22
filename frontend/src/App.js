@@ -19,10 +19,10 @@ function App() {
     try {
       const query = searchQuery.trim();
       const response = query
-        ? await api.get(currentFolder ? '/files/search/folder' : '/files/search', {
-            params: currentFolder ? { query, parentId: currentFolder } : { query }
+        ? await api.get('/files/search', {
+            params: currentFolder ? { name: query, exact: true, parentId: currentFolder } : { name: query, exact: true }
           })
-        : await api.get('/files/list', {
+        : await api.get('/files', {
             params: currentFolder ? { parentId: currentFolder } : {}
           });
       setFiles(query ? response.data : response.data.content);
@@ -47,12 +47,7 @@ function App() {
 
   const handleCreateFile = async (name) => {
     try {
-      await api.post('/files/create-file', null, {
-        params: {
-          name,
-          ...(currentFolder ? { parentId: currentFolder } : {})
-        }
-      });
+      await api.post('/files', { name, ...(currentFolder ? { parentId: currentFolder } : {}) });
       fetchFiles();
     } catch (err) {
       setError('Failed to create file: ' + err.message);
@@ -61,12 +56,7 @@ function App() {
 
   const handleCreateFolder = async (name) => {
     try {
-      await api.post('/files/create-folder', null, {
-        params: {
-          name,
-          ...(currentFolder ? { parentId: currentFolder } : {})
-        }
-      });
+      await api.post('/folders', { name, ...(currentFolder ? { parentId: currentFolder } : {}) });
       fetchFiles();
     } catch (err) {
       setError('Failed to create folder: ' + err.message);
@@ -75,9 +65,7 @@ function App() {
 
   const handleRename = async (fileId, newName) => {
     try {
-      await api.put(`/files/${fileId}/rename`, null, {
-        params: { newName: newName }
-      });
+      await api.patch(`/files/${fileId}`, { name: newName });
       fetchFiles();
     } catch (err) {
       setError('Failed to rename: ' + err.message);

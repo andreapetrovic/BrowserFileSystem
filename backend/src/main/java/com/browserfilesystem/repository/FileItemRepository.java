@@ -14,7 +14,7 @@ public interface FileItemRepository extends MongoRepository<FileItem, String> {
     long deleteByPathStartingWith(String path);
     List<FileItem> findByNormalizedName(String normalizedName);
     List<FileItem> findByNormalizedNameAndParentId(String normalizedName, String parentId);
-    Page<FileItem> findByNormalizedNameStartingWithAndIsFolderFalse(String namePrefix, Pageable pageable);
-    Page<FileItem> findByNormalizedNameStartingWithAndParentIdAndIsFolderFalse(
+    Page<FileItem> findByNormalizedNameStartingWithAndFolderFalse(String namePrefix, Pageable pageable);
+    Page<FileItem> findByNormalizedNameStartingWithAndParentIdAndFolderFalse(
             String namePrefix, String parentId, Pageable pageable);
 }
