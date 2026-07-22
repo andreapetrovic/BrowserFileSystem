@@ -69,21 +69,35 @@ public class FileService {
         fileRepository.deleteById(id);
     }
 
-    public List<FileItem> searchFilesByName(String namePrefix) {
+    public List<FileItem> searchFilesByName(String name) {
+        if (name == null || name.trim().isEmpty()) {
+            return List.of();
+        }
+        return fileRepository.findByNameIgnoreCase(name.trim());
+    }
+
+    public List<FileItem> searchFilesByNameInFolder(String name, String parentId) {
+        if (name == null || name.trim().isEmpty()) {
+            return List.of();
+        }
+        return fileRepository.findByNameIgnoreCaseAndParentId(name.trim(), parentId);
+    }
+
+    public List<FileItem> getAutocompleteSuggestions(String namePrefix) {
         if (namePrefix == null || namePrefix.trim().isEmpty()) {
             return List.of();
         }
-        return fileRepository.findByNameIgnoreCaseStartingWith(namePrefix)
+        return fileRepository.findByNameIgnoreCaseStartingWithAndIsFolderFalse(namePrefix.trim())
                 .stream()
                 .limit(SEARCH_LIMIT)
                 .collect(Collectors.toList());
     }
 
-    public List<FileItem> searchFilesByNameInFolder(String namePrefix, String parentId) {
+    public List<FileItem> getAutocompleteSuggestionsInFolder(String namePrefix, String parentId) {
         if (namePrefix == null || namePrefix.trim().isEmpty()) {
             return List.of();
         }
-        return fileRepository.findByNameIgnoreCaseStartingWithAndParentId(namePrefix, parentId)
+        return fileRepository.findByNameIgnoreCaseStartingWithAndParentIdAndIsFolderFalse(namePrefix.trim(), parentId)
                 .stream()
                 .limit(SEARCH_LIMIT)
                 .collect(Collectors.toList());

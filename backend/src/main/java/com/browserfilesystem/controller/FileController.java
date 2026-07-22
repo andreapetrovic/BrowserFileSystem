@@ -70,4 +70,16 @@ public class FileController {
             @RequestParam String parentId) {
         return ResponseEntity.ok(fileService.searchFilesByNameInFolder(query, parentId));
     }
+
+    @GetMapping("/autocomplete")
+    public ResponseEntity<List<FileItem>> autocomplete(@RequestParam String query) {
+        return ResponseEntity.ok(fileService.getAutocompleteSuggestions(query));
+    }
+
+    @GetMapping("/autocomplete/folder")
+    public ResponseEntity<List<FileItem>> autocompleteInFolder(
+            @RequestParam String query,
+            @RequestParam String parentId) {
+        return ResponseEntity.ok(fileService.getAutocompleteSuggestionsInFolder(query, parentId));
+    }
 }

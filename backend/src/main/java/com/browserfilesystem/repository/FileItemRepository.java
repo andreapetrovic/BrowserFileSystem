@@ -9,6 +9,8 @@ import java.util.List;
 @Repository
 public interface FileItemRepository extends MongoRepository<FileItem, String> {
     List<FileItem> findByParentId(String parentId);
-    List<FileItem> findByNameIgnoreCaseStartingWith(String namePrefix);
-    List<FileItem> findByNameIgnoreCaseStartingWithAndParentId(String namePrefix, String parentId);
+    List<FileItem> findByNameIgnoreCase(String name);
+    List<FileItem> findByNameIgnoreCaseAndParentId(String name, String parentId);
+    List<FileItem> findByNameIgnoreCaseStartingWithAndIsFolderFalse(String namePrefix);
+    List<FileItem> findByNameIgnoreCaseStartingWithAndParentIdAndIsFolderFalse(String namePrefix, String parentId);
 }

@@ -13,7 +13,9 @@ const ActionBar = ({
   setNewFolderName,
   onCreateFolder,
   searchQuery,
-  setSearchQuery
+  setSearchQuery,
+  suggestions,
+  onSelectSuggestion
 }) => {
   return (
     <div className="action-bar">
@@ -61,6 +63,17 @@ const ActionBar = ({
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
+        {suggestions.length > 0 && (
+          <ul className="suggestions">
+            {suggestions.map((file) => (
+              <li key={file.id}>
+                <button type="button" onClick={() => onSelectSuggestion(file.name)}>
+                  {file.name}
+                </button>
+              </li>
+            ))}
+          </ul>
+        )}
       </div>
     </div>
   );

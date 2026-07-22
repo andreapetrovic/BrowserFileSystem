@@ -22,6 +22,10 @@
   cursor: pointer;
   font-size: 14px;
   transition: background-color 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-weight: 500;
 }
 
 .back-btn:hover {
@@ -41,11 +45,41 @@
 }
 
 .search-box {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 8px;
   max-width: 360px;
   color: #666;
+}
+
+.suggestions {
+  position: absolute;
+  z-index: 2;
+  top: calc(100% + 4px);
+  left: 26px;
+  right: 0;
+  margin: 0;
+  padding: 4px 0;
+  list-style: none;
+  background: white;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.12);
+}
+
+.suggestions button {
+  width: 100%;
+  padding: 8px 12px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  text-align: left;
+}
+
+.suggestions button:hover,
+.suggestions button:focus {
+  background: #f0f6ff;
 }
 
 .search-box input {

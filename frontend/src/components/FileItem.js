@@ -31,6 +31,7 @@ const FileItem = ({ file, onOpenFolder, onRename, onDelete }) => {
             type="text"
             className="rename-input"
             value={newName}
+            onBlur={handleRenameSubmit}
             onChange={(e) => setNewName(e.target.value)}
             onKeyPress={(e) => e.key === 'Enter' && handleRenameSubmit()}
             autoFocus

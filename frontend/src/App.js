@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import './App.css';
 import FileExplorer from './components/FileExplorer';
 import api from './services/api';
@@ -7,22 +7,24 @@ function App() {
   const [files, setFiles] = useState([]);
   const [currentFolder, setCurrentFolder] = useState(null);
   const [currentFolderName, setCurrentFolderName] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [backendError, setBackendError] = useState(false);
 
-  useEffect(() => {
-    fetchFiles();
-  }, [currentFolder]);
-
-  const fetchFiles = async () => {
+  const fetchFiles = useCallback(async () => {
     setLoading(true);
     setError(null);
     setBackendError(false);
     try {
-      const response = await api.get('/files/list', {
-        params: currentFolder ? { parentId: currentFolder } : {}
-      });
+      const query = searchQuery.trim();
+      const response = query
+        ? await api.get(currentFolder ? '/files/search/folder' : '/files/search', {
+            params: currentFolder ? { query, parentId: currentFolder } : { query }
+          })
+        : await api.get('/files/list', {
+            params: currentFolder ? { parentId: currentFolder } : {}
+          });
       setFiles(response.data);
       setBackendError(false);
     } catch (err) {
@@ -37,7 +39,11 @@ function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentFolder, searchQuery]);
+
+  useEffect(() => {
+    fetchFiles();
+  }, [fetchFiles]);
 
   const handleCreateFile = async (name) => {
     try {
@@ -110,6 +116,8 @@ function App() {
             loading={loading}
             currentFolder={currentFolder}
             currentFolderName={currentFolderName}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
             onCreateFile={handleCreateFile}
             onCreateFolder={handleCreateFolder}
             onRename={handleRename}
