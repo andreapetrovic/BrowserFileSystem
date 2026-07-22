@@ -55,8 +55,9 @@ public class FileController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteFile(@PathVariable String id) {
-        fileService.deleteFile(id);
-        return ResponseEntity.noContent().build();
+        return fileService.deleteFile(id)
+                ? ResponseEntity.noContent().build()
+                : ResponseEntity.notFound().build();
     }
 
     @GetMapping("/search")

@@ -3,6 +3,8 @@ package com.browserfilesystem.service;
 import com.browserfilesystem.model.FileItem;
 import com.browserfilesystem.repository.FileItemRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
@@ -10,13 +12,17 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
 public class FileService {
     private final FileItemRepository fileRepository;
     private static final int SEARCH_LIMIT = 10;
+    private static final PageRequest AUTOCOMPLETE_PAGE = PageRequest.of(
+            0,
+            SEARCH_LIMIT,
+            Sort.by(Sort.Order.asc("normalizedName"), Sort.Order.asc("id"))
+    );
 
     public List<FileItem> listFilesByParent(String parentId) {
         return fileRepository.findByParentId(normalizeParentId(parentId));
@@ -64,6 +70,7 @@ public class FileService {
             FileItem updatedFile = new FileItem(
                     id,
                     newName,
+                    FileItem.normalizeName(newName),
                     file.getParentId(),
                     file.isFolder(),
                     file.getCreatedAt(),
@@ -82,52 +89,54 @@ public class FileService {
     }
 
     private List<FileItem> findFilesByNameInParent(String name, String parentId) {
-        return fileRepository.findByNameIgnoreCaseAndParentId(name, normalizeParentId(parentId));
+        return fileRepository.findByNormalizedNameAndParentId(
+                FileItem.normalizeName(name), normalizeParentId(parentId));
     }
 
-    public void deleteFile(String id) {
+    public boolean deleteFile(String id) {
         Optional<FileItem> file = fileRepository.findById(id);
-        if (file.isPresent() && file.get().isFolder()) {
+        if (file.isEmpty()) {
+            return false;
+        }
+
+        if (file.get().isFolder()) {
             List<FileItem> children = fileRepository.findByParentId(id);
             for (FileItem child : children) {
                 deleteFile(child.getId());
             }
         }
         fileRepository.deleteById(id);
+        return true;
     }
 
     public List<FileItem> searchFilesByName(String name) {
         if (name == null || name.trim().isEmpty()) {
             return List.of();
         }
-        return fileRepository.findByNameIgnoreCase(name.trim());
+        return fileRepository.findByNormalizedName(FileItem.normalizeName(name.trim()));
     }
 
     public List<FileItem> searchFilesByNameInFolder(String name, String parentId) {
         if (name == null || name.trim().isEmpty()) {
             return List.of();
         }
-        return fileRepository.findByNameIgnoreCaseAndParentId(name.trim(), normalizeParentId(parentId));
+        return fileRepository.findByNormalizedNameAndParentId(
+                FileItem.normalizeName(name.trim()), normalizeParentId(parentId));
     }
 
     public List<FileItem> getAutocompleteSuggestions(String namePrefix) {
         if (namePrefix == null || namePrefix.trim().isEmpty()) {
             return List.of();
         }
-        return fileRepository.findByNameIgnoreCaseStartingWithAndIsFolderFalse(namePrefix.trim())
-                .stream()
-                .limit(SEARCH_LIMIT)
-                .collect(Collectors.toList());
+        return fileRepository.findByNormalizedNameStartingWithAndIsFolderFalse(
+                FileItem.normalizeName(namePrefix.trim()), AUTOCOMPLETE_PAGE).getContent();
     }
 
     public List<FileItem> getAutocompleteSuggestionsInFolder(String namePrefix, String parentId) {
         if (namePrefix == null || namePrefix.trim().isEmpty()) {
             return List.of();
         }
-        return fileRepository.findByNameIgnoreCaseStartingWithAndParentIdAndIsFolderFalse(namePrefix.trim(),
-                        normalizeParentId(parentId))
-                .stream()
-                .limit(SEARCH_LIMIT)
-                .collect(Collectors.toList());
+        return fileRepository.findByNormalizedNameStartingWithAndParentIdAndIsFolderFalse(
+                FileItem.normalizeName(namePrefix.trim()), normalizeParentId(parentId), AUTOCOMPLETE_PAGE).getContent();
     }
 }
