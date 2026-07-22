@@ -8,7 +8,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.server.ResponseStatusException;
 
 import java.time.Instant;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -20,12 +19,7 @@ public class FileService {
     private static final int SEARCH_LIMIT = 10;
 
     public List<FileItem> listFilesByParent(String parentId) {
-        if (parentId == null || parentId.isBlank()) {
-            List<FileItem> rootFiles = new ArrayList<>(fileRepository.findByParentId(null));
-            rootFiles.addAll(fileRepository.findByParentId(""));
-            return rootFiles;
-        }
-        return fileRepository.findByParentId(parentId);
+        return fileRepository.findByParentId(normalizeParentId(parentId));
     }
 
     public Optional<FileItem> getFileById(String id) {
@@ -47,16 +41,21 @@ public class FileService {
     }
 
     private String validateAndNormalizeParentId(String parentId) {
-        if (parentId == null || parentId.isBlank()) {
+        String normalizedParentId = normalizeParentId(parentId);
+        if (normalizedParentId == null) {
             return null;
         }
 
-        FileItem parent = fileRepository.findById(parentId)
+        FileItem parent = fileRepository.findById(normalizedParentId)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "Parent folder not found"));
         if (!parent.isFolder()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parent must be a folder");
         }
-        return parentId;
+        return normalizedParentId;
+    }
+
+    private String normalizeParentId(String parentId) {
+        return parentId == null || parentId.isBlank() ? null : parentId;
     }
 
     public Optional<FileItem> renameFile(String id, String newName) {
@@ -83,13 +82,7 @@ public class FileService {
     }
 
     private List<FileItem> findFilesByNameInParent(String name, String parentId) {
-        if (parentId != null) {
-            return fileRepository.findByNameIgnoreCaseAndParentId(name, parentId);
-        }
-
-        List<FileItem> rootItems = new ArrayList<>(fileRepository.findByNameIgnoreCaseAndParentId(name, null));
-        rootItems.addAll(fileRepository.findByNameIgnoreCaseAndParentId(name, ""));
-        return rootItems;
+        return fileRepository.findByNameIgnoreCaseAndParentId(name, normalizeParentId(parentId));
     }
 
     public void deleteFile(String id) {
@@ -114,7 +107,7 @@ public class FileService {
         if (name == null || name.trim().isEmpty()) {
             return List.of();
         }
-        return fileRepository.findByNameIgnoreCaseAndParentId(name.trim(), parentId);
+        return fileRepository.findByNameIgnoreCaseAndParentId(name.trim(), normalizeParentId(parentId));
     }
 
     public List<FileItem> getAutocompleteSuggestions(String namePrefix) {
@@ -131,7 +124,8 @@ public class FileService {
         if (namePrefix == null || namePrefix.trim().isEmpty()) {
             return List.of();
         }
-        return fileRepository.findByNameIgnoreCaseStartingWithAndParentIdAndIsFolderFalse(namePrefix.trim(), parentId)
+        return fileRepository.findByNameIgnoreCaseStartingWithAndParentIdAndIsFolderFalse(namePrefix.trim(),
+                        normalizeParentId(parentId))
                 .stream()
                 .limit(SEARCH_LIMIT)
                 .collect(Collectors.toList());
