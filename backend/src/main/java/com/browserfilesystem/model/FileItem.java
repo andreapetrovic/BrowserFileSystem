@@ -27,6 +27,10 @@ public class FileItem {
 
     @Indexed
     private String parentId; // Reference to parent folder, null if root
+
+    @Indexed
+    private String path;
+
     private boolean isFolder;
     private Instant createdAt;
     private Instant updatedAt;
@@ -40,6 +44,17 @@ public class FileItem {
         this.name = name;
         this.normalizedName = normalizeName(name);
         this.parentId = parentId;
+        this.isFolder = isFolder;
+        this.createdAt = Instant.now();
+        this.updatedAt = Instant.now();
+    }
+
+    public FileItem(String id, String name, String parentId, String path, boolean isFolder) {
+        this.id = id;
+        this.name = name;
+        this.normalizedName = normalizeName(name);
+        this.parentId = parentId;
+        this.path = path;
         this.isFolder = isFolder;
         this.createdAt = Instant.now();
         this.updatedAt = Instant.now();

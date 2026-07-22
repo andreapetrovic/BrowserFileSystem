@@ -11,6 +11,7 @@ import java.util.List;
 @Repository
 public interface FileItemRepository extends MongoRepository<FileItem, String> {
     List<FileItem> findByParentId(String parentId);
+    long deleteByPathStartingWith(String path);
     List<FileItem> findByNormalizedName(String normalizedName);
     List<FileItem> findByNormalizedNameAndParentId(String normalizedName, String parentId);
     Page<FileItem> findByNormalizedNameStartingWithAndIsFolderFalse(String namePrefix, Pageable pageable);

@@ -12,6 +12,7 @@ import org.springframework.web.server.ResponseStatusException;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -33,20 +34,25 @@ public class FileService {
     }
 
     public FileItem createFile(String name, String parentId) {
-        String normalizedParentId = validateAndNormalizeParentId(parentId);
-        ensureNameIsAvailable(name, normalizedParentId, null);
-        FileItem file = new FileItem(name, normalizedParentId, false);
-        return fileRepository.save(file);
+        return createItem(name, parentId, false);
     }
 
     public FileItem createFolder(String name, String parentId) {
-        String normalizedParentId = validateAndNormalizeParentId(parentId);
-        ensureNameIsAvailable(name, normalizedParentId, null);
-        FileItem folder = new FileItem(name, normalizedParentId, true);
-        return fileRepository.save(folder);
+        return createItem(name, parentId, true);
     }
 
-    private String validateAndNormalizeParentId(String parentId) {
+    private FileItem createItem(String name, String parentId, boolean isFolder) {
+        String normalizedParentId = normalizeParentId(parentId);
+        FileItem parent = findParentFolder(normalizedParentId);
+        ensureNameIsAvailable(name, normalizedParentId, null);
+
+        String id = UUID.randomUUID().toString();
+        String parentPath = parent == null ? "/" : parent.getPath();
+        FileItem item = new FileItem(id, name, normalizedParentId, parentPath + id + "/", isFolder);
+        return fileRepository.save(item);
+    }
+
+    private FileItem findParentFolder(String parentId) {
         String normalizedParentId = normalizeParentId(parentId);
         if (normalizedParentId == null) {
             return null;
@@ -57,7 +63,7 @@ public class FileService {
         if (!parent.isFolder()) {
             throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Parent must be a folder");
         }
-        return normalizedParentId;
+        return parent;
     }
 
     private String normalizeParentId(String parentId) {
@@ -72,6 +78,7 @@ public class FileService {
                     newName,
                     FileItem.normalizeName(newName),
                     file.getParentId(),
+                    file.getPath(),
                     file.isFolder(),
                     file.getCreatedAt(),
                     Instant.now()
@@ -99,13 +106,7 @@ public class FileService {
             return false;
         }
 
-        if (file.get().isFolder()) {
-            List<FileItem> children = fileRepository.findByParentId(id);
-            for (FileItem child : children) {
-                deleteFile(child.getId());
-            }
-        }
-        fileRepository.deleteById(id);
+        fileRepository.deleteByPathStartingWith(file.get().getPath());
         return true;
     }
 
