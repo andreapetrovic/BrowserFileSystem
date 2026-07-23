@@ -39,18 +39,18 @@ It runs on `http://localhost:3000` and calls the backend at `http://localhost:80
 
 ## Configuration
 
-| Setting | Default | Purpose |
-| --- | --- | --- |
-| `REACT_APP_API_URL` | `http://localhost:8080/api` | Frontend API base URL |
+| Setting | Default       | Purpose                |
+| --- |---------------|------------------------|
+| `REACT_APP_API_URL` | `http://localhost:8080/api` | Frontend API base URL  |
 | `spring.data.mongodb.uri` | `mongodb://localhost:27017/browser_file_system` | MongoDB connection URI |
-| `server.port` | `8080` | Backend HTTP port |
+| `server.port` | `8080`        | Backend HTTP port      |
+| `NODE_ENV` | `development` | Type of environment    |
 
 ## Development and debug
 
-- Run backend tests: `cd backend && mvn test`
 - Run backend tests: `cd backend && ./mvnw test`
-- Build the frontend: `cd frontend && npm run build`
-- Debug the backend from your IDE by debugging `BrowserFileSystemApplication` with the `dev` profile or with the normal Spring Boot configuration.
+- Build the frontend: `cd frontend && c`
+- Debug the backend from your IDE by debugging `BrowserFileSystemApplication` with the normal Spring Boot configuration.
 
 ## Search behavior
 

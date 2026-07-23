@@ -3,6 +3,17 @@ import './App.css';
 import FileExplorer from './components/FileExplorer';
 import api from './services/api';
 
+const getActionErrorMessage = (error, action) => {
+  const serverMessage = error.response?.data?.message;
+  if (serverMessage) {
+    return `${action}: ${serverMessage}`;
+  }
+  if (error.code === 'ERR_NETWORK' || !error.response) {
+    return `${action}: cannot connect to the backend. Make sure the server is running.`;
+  }
+  return `${action}: please try again.`;
+};
+
 function App() {
   const [files, setFiles] = useState([]);
   const [folderPath, setFolderPath] = useState([]);
@@ -40,11 +51,11 @@ function App() {
       setHasNextPage(!response.data.last);
       setBackendError(false);
     } catch (err) {
-      if (err.response?.status === 404 || err.code === 'ERR_NETWORK' || !err.response) {
+      if (err.code === 'ERR_NETWORK' || !err.response) {
         setBackendError(true);
-        setError('Cannot connect to backend. Make sure the server is running.');
+        setError(getActionErrorMessage(err, 'Could not load files'));
       } else {
-        setError('Failed to load files: ' + err.message);
+        setError(getActionErrorMessage(err, 'Could not load files'));
       }
       if (!append) {
         setFiles([]);
@@ -73,7 +84,7 @@ function App() {
       await api.post('/files', { name, ...(currentFolder ? { parentId: currentFolder } : {}) });
       fetchFiles(0);
     } catch (err) {
-      setError('Failed to create file: ' + err.message);
+      setError(getActionErrorMessage(err, 'Could not create file'));
     } finally {
       setActionLoading(null);
     }
@@ -86,7 +97,7 @@ function App() {
       await api.post('/folders', { name, ...(currentFolder ? { parentId: currentFolder } : {}) });
       fetchFiles(0);
     } catch (err) {
-      setError('Failed to create folder: ' + err.message);
+      setError(getActionErrorMessage(err, 'Could not create folder'));
     } finally {
       setActionLoading(null);
     }
@@ -99,7 +110,7 @@ function App() {
       await api.patch(`/files/${fileId}`, { name: newName });
       fetchFiles(0);
     } catch (err) {
-      setError('Failed to rename: ' + err.message);
+      setError(getActionErrorMessage(err, 'Could not rename file'));
     } finally {
       setActionLoading(null);
     }
@@ -112,7 +123,7 @@ function App() {
       await api.delete(`/files/${fileId}`);
       fetchFiles(0);
     } catch (err) {
-      setError('Failed to delete: ' + err.message);
+      setError(getActionErrorMessage(err, 'Could not delete file'));
     } finally {
       setActionLoading(null);
     }
@@ -145,7 +156,7 @@ function App() {
         <h1>Browser File System</h1>
       </header>
       <main className="app-main">
-        {error && <div className="error-message">{error}</div>}
+        {error && <div className="error-message" role="alert">{error}</div>}
         {!backendError && (
           <FileExplorer
             files={files}
