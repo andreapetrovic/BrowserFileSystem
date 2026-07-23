@@ -24,6 +24,7 @@ function App() {
   const [hasNextPage, setHasNextPage] = useState(false);
   const [actionLoading, setActionLoading] = useState(null);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(null);
   const [backendError, setBackendError] = useState(false);
   const currentFolder = folderPath.at(-1)?.id ?? null;
 
@@ -77,11 +78,22 @@ function App() {
     fetchFiles(0);
   }, [fetchFiles]);
 
+  useEffect(() => {
+    if (!success) {
+      return undefined;
+    }
+    const timer = setTimeout(() => setSuccess(null), 5000);
+    return () => clearTimeout(timer);
+  }, [success]);
+
   const handleCreateFile = async (name) => {
     if (actionLoading) return;
     setActionLoading('create-file');
+    setError(null);
+    setSuccess(null);
     try {
       await api.post('/files', { name, ...(currentFolder ? { parentId: currentFolder } : {}) });
+      setSuccess(`File “${name}” was created.`);
       fetchFiles(0);
     } catch (err) {
       setError(getActionErrorMessage(err, 'Could not create file'));
@@ -93,8 +105,11 @@ function App() {
   const handleCreateFolder = async (name) => {
     if (actionLoading) return;
     setActionLoading('create-folder');
+    setError(null);
+    setSuccess(null);
     try {
       await api.post('/folders', { name, ...(currentFolder ? { parentId: currentFolder } : {}) });
+      setSuccess(`Folder “${name}” was created.`);
       fetchFiles(0);
     } catch (err) {
       setError(getActionErrorMessage(err, 'Could not create folder'));
@@ -106,8 +121,11 @@ function App() {
   const handleRename = async (fileId, newName) => {
     if (actionLoading) return;
     setActionLoading(`rename:${fileId}`);
+    setError(null);
+    setSuccess(null);
     try {
       await api.patch(`/files/${fileId}`, { name: newName });
+      setSuccess(`Item was renamed to “${newName}”.`);
       fetchFiles(0);
     } catch (err) {
       setError(getActionErrorMessage(err, 'Could not rename file'));
@@ -119,8 +137,12 @@ function App() {
   const handleDelete = async (fileId) => {
     if (actionLoading) return;
     setActionLoading(`delete:${fileId}`);
+    setError(null);
+    setSuccess(null);
+    const item = files.find((file) => file.id === fileId);
     try {
       await api.delete(`/files/${fileId}`);
+      setSuccess(`${item?.folder ? 'Folder' : 'File'} “${item?.name ?? ''}” was deleted.`);
       fetchFiles(0);
     } catch (err) {
       setError(getActionErrorMessage(err, 'Could not delete file'));
@@ -157,6 +179,7 @@ function App() {
       </header>
       <main className="app-main">
         {error && <div className="error-message" role="alert">{error}</div>}
+        {success && <div className="success-message" role="status">{success}</div>}
         {!backendError && (
           <FileExplorer
             files={files}
