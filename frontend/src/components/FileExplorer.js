@@ -34,6 +34,7 @@ const FileExplorer = ({
       return undefined;
     }
 
+    // Debounce user input so autocomplete is fetched from the backend only after typing pauses.
     const timer = setTimeout(async () => {
       try {
         const response = await api.get('/files/search', {
@@ -47,6 +48,7 @@ const FileExplorer = ({
       }
     }, 250);
 
+    // Cancel the pending request trigger when the query or folder changes.
     return () => clearTimeout(timer);
   }, [searchQuery, currentFolder]);
 

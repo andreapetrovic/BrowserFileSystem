@@ -26,6 +26,7 @@ import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
+/** Verifies the service's file-system rules independently from MongoDB using Mockito. */
 class FileServiceTest {
     @Mock
     private FileItemRepository fileRepository;
@@ -107,10 +108,12 @@ class FileServiceTest {
         verify(fileRepository, never()).findByNormalizedName(eq("rea"), any(Pageable.class));
     }
 
+    /** Builds compact service-test fixtures with the fields required by path and folder rules. */
     private static FileItem item(String id, String name, String parentId, String path, boolean folder) {
         return new FileItem(id, name, parentId, path, folder);
     }
 
+    /** Asserts that a service rule is exposed as the intended HTTP-oriented status exception. */
     private static void assertStatus(HttpStatus status, Runnable action) {
         assertThatThrownBy(action::run)
                 .isInstanceOf(ResponseStatusException.class)

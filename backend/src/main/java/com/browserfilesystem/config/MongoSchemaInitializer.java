@@ -21,19 +21,23 @@ import java.util.Map;
 import java.util.Set;
 
 @Configuration
+/** Migrates legacy MongoDB documents and creates the indexes required by the file-system model. */
 public class MongoSchemaInitializer {
 
+    /** Runs the migration and index setup once the application context has a Mongo connection. */
     @Bean
     ApplicationRunner initializeMongoSchema(MongoTemplate mongoTemplate) {
         return new ApplicationRunner() {
             @Override
             public void run(ApplicationArguments args) {
+                // Existing documents predate normalizedName and path, so migrate them before enforcing indexes.
                 backfillFileFields(mongoTemplate);
                 createFileIndexes(mongoTemplate);
             }
         };
     }
 
+    /** Adds normalized names and materialized paths to documents that may have been created by older versions. */
     private void backfillFileFields(MongoTemplate mongoTemplate) {
         List<Document> documents = mongoTemplate.getCollection("files")
                 .find()
@@ -43,6 +47,7 @@ public class MongoSchemaInitializer {
             documentsById.put(document.get("_id").toString(), document);
         }
 
+        // Cache resolved paths so each parent chain is calculated once during the migration.
         Map<String, String> pathsById = new HashMap<>();
         for (Document document : documents) {
             String id = document.get("_id").toString();
@@ -64,6 +69,7 @@ public class MongoSchemaInitializer {
         }
     }
 
+    /** Resolves one item's complete path while detecting missing parents and hierarchy cycles. */
     private String resolvePath(
             String id,
             Map<String, Document> documentsById,
@@ -73,6 +79,7 @@ public class MongoSchemaInitializer {
             return pathsById.get(id);
         }
         if (!ancestors.add(id)) {
+            // A cyclic hierarchy cannot be represented by a materialized path.
             throw new IllegalStateException("Cycle detected in file hierarchy at " + id);
         }
 
@@ -92,15 +99,18 @@ public class MongoSchemaInitializer {
         return path;
     }
 
+    /** Creates all indexes declared on {@link FileItem}, including the sibling-name uniqueness constraint. */
     private void createFileIndexes(MongoTemplate mongoTemplate) {
         IndexOperations indexOperations = mongoTemplate.indexOps(FileItem.class);
         MongoPersistentEntityIndexResolver resolver = new MongoPersistentEntityIndexResolver(
                 mongoTemplate.getConverter().getMappingContext());
+        // Resolve @Indexed and @CompoundIndex annotations rather than duplicating index definitions here.
         for (IndexDefinition index : resolver.resolveIndexFor(FileItem.class)) {
             indexOperations.ensureIndex(index);
         }
     }
 
+    /** Uses null as the single representation of the root folder. */
     private String normalizeParentId(String parentId) {
         return parentId == null || parentId.isBlank() ? null : parentId;
     }

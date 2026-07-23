@@ -29,6 +29,7 @@ function App() {
   const currentFolder = folderPath.at(-1)?.id ?? null;
 
   const fetchFiles = useCallback(async (page = 0, append = false) => {
+    // The same paginated request supports normal listings and exact-name search results.
     if (append) {
       setLoadingMore(true);
     } else {
@@ -82,6 +83,7 @@ function App() {
     if (!success) {
       return undefined;
     }
+    // Success notices are temporary; errors remain until the next successful request/action clears them.
     const timer = setTimeout(() => setSuccess(null), 5000);
     return () => clearTimeout(timer);
   }, [success]);

@@ -30,6 +30,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 
 @WebMvcTest(controllers = {FileController.class, FolderController.class})
 @Import(GlobalExceptionHandler.class)
+/** Verifies controller request validation, status mapping, pagination, and DTO JSON with MockMvc. */
 class FileControllerTest {
     @Autowired
     private MockMvc mockMvc;
@@ -102,6 +103,7 @@ class FileControllerTest {
                 .andExpect(jsonPath("$.content[0].name").value("renamed.txt"));
     }
 
+    /** Builds concise entity fixtures while keeping each test focused on HTTP behavior. */
     private static FileItem item(String id, String name, String parentId, String path, boolean folder) {
         return new FileItem(id, name, parentId, path, folder);
     }

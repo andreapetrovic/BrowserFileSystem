@@ -21,10 +21,12 @@ import java.util.List;
 @RequestMapping("/api/files")
 @RequiredArgsConstructor
 @Validated
+/** Exposes REST endpoints for file lifecycle operations, paginated listings, and search. */
 public class FileController {
     private final FileService fileService;
 
     @GetMapping
+    /** Returns one deterministic page of direct children for the requested folder (or the root). */
     public ResponseEntity<Page<FileItemResponse>> listFiles(
             @RequestParam(required = false) String parentId,
             @RequestParam(defaultValue = "0") @Min(0) int page,
@@ -33,6 +35,7 @@ public class FileController {
     }
 
     @GetMapping("/{id}")
+    /** Returns a single item when its identifier exists, otherwise a 404 response. */
     public ResponseEntity<FileItemResponse> getFile(@PathVariable @NotBlank String id) {
         return fileService.getFileById(id)
                 .map(FileItemResponse::from)
@@ -41,12 +44,14 @@ public class FileController {
     }
 
     @PostMapping
+    /** Creates a non-folder item under the supplied parent folder. */
     public ResponseEntity<FileItemResponse> createFile(@Valid @RequestBody CreateItemRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(FileItemResponse.from(fileService.createFile(request.name(), request.parentId())));
     }
 
     @PatchMapping("/{id}")
+    /** Renames an item while the service enforces sibling-name uniqueness. */
     public ResponseEntity<FileItemResponse> renameFile(@PathVariable @NotBlank String id,
                                                          @Valid @RequestBody RenameFileRequest request) {
         return fileService.renameFile(id, request.name())
@@ -56,6 +61,7 @@ public class FileController {
     }
 
     @DeleteMapping("/{id}")
+    /** Deletes an item and, if it is a folder, its descendants. */
     public ResponseEntity<Void> deleteFile(@PathVariable @NotBlank String id) {
         return fileService.deleteFile(id)
                 ? ResponseEntity.noContent().build()
@@ -63,6 +69,10 @@ public class FileController {
     }
 
     @GetMapping("/search")
+    /**
+     * Returns a paginated exact-name result when {@code exact=true}; otherwise returns up to ten file-only
+     * autocomplete suggestions.
+     */
     public ResponseEntity<?> searchFiles(
             @RequestParam @NotBlank String name,
             @RequestParam(defaultValue = "true") boolean exact,

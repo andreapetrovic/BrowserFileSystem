@@ -15,10 +15,12 @@ import org.springframework.web.bind.annotation.RestController;
 @RestController
 @RequestMapping("/api/folders")
 @RequiredArgsConstructor
+/** Provides the dedicated resource endpoint for creating folders. */
 public class FolderController {
     private final FileService fileService;
 
     @PostMapping
+    /** Creates a folder after request and parent-folder validation. */
     public ResponseEntity<FileItemResponse> createFolder(@Valid @RequestBody CreateItemRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(FileItemResponse.from(fileService.createFolder(request.name(), request.parentId())));
