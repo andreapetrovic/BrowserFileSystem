@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import './css/FileItem.css';
 import { FiFolder, FiFile, FiEdit2, FiTrash2, FiArrowRight } from 'react-icons/fi';
 
-const FileItem = ({ file, onOpenFolder, onRename, onDelete }) => {
+const FileItem = ({ file, onOpenFolder, onRename, onDelete, actionLoading }) => {
   const [isRenaming, setIsRenaming] = useState(false);
   const [newName, setNewName] = useState(file.name);
 
@@ -17,6 +17,9 @@ const FileItem = ({ file, onOpenFolder, onRename, onDelete }) => {
     const date = new Date(dateString);
     return date.toLocaleDateString() + ' ' + date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
+  const isBusy = Boolean(actionLoading);
+  const isRenamingFile = actionLoading === `rename:${file.id}`;
+  const isDeletingFile = actionLoading === `delete:${file.id}`;
 
   return (
     <div className="file-item">
@@ -33,7 +36,8 @@ const FileItem = ({ file, onOpenFolder, onRename, onDelete }) => {
             value={newName}
             onBlur={handleRenameSubmit}
             onChange={(e) => setNewName(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && handleRenameSubmit()}
+            onKeyDown={(e) => e.key === 'Enter' && handleRenameSubmit()}
+            disabled={isBusy}
             autoFocus
           />
         ) : (
@@ -43,6 +47,7 @@ const FileItem = ({ file, onOpenFolder, onRename, onDelete }) => {
               className="file-name-text folder-name-button"
               onClick={() => onOpenFolder(file)}
               title={`Open ${file.name}`}
+              disabled={isBusy}
             >
               {file.name}
             </button>
@@ -66,6 +71,7 @@ const FileItem = ({ file, onOpenFolder, onRename, onDelete }) => {
             className="action-btn open-btn"
             onClick={() => onOpenFolder(file)}
             title="Open folder"
+            aria-label={`Open ${file.name}`}
           >
             <FiArrowRight size={16} />
           </button>
@@ -74,8 +80,10 @@ const FileItem = ({ file, onOpenFolder, onRename, onDelete }) => {
           className="action-btn rename-btn"
           onClick={() => setIsRenaming(true)}
           title="Rename"
+          aria-label={`Rename ${file.name}`}
+          disabled={isBusy}
         >
-          <FiEdit2 size={16} />
+          {isRenamingFile ? '...' : <FiEdit2 size={16} />}
         </button>
         <button
           className="action-btn delete-btn"
@@ -85,8 +93,10 @@ const FileItem = ({ file, onOpenFolder, onRename, onDelete }) => {
             }
           }}
           title="Delete"
+          aria-label={`Delete ${file.name}`}
+          disabled={isBusy}
         >
-          <FiTrash2 size={16} />
+          {isDeletingFile ? '...' : <FiTrash2 size={16} />}
         </button>
       </div>
     </div>

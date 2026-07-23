@@ -10,3 +10,18 @@
   font-size: 16px;
   color: #666;
 }
+
+.load-more-btn {
+  align-self: center;
+  padding: 8px 16px;
+  border: 1px solid #0066cc;
+  border-radius: 4px;
+  background: white;
+  color: #0066cc;
+  cursor: pointer;
+}
+
+.load-more-btn:disabled {
+  cursor: wait;
+  opacity: 0.6;
+}

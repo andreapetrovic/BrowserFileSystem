@@ -119,19 +119,26 @@ public class FileService {
         return true;
     }
 
-    public List<FileItem> searchFilesByName(String name) {
+    public Page<FileItem> searchFilesByName(String name, int page, int size) {
         if (name == null || name.trim().isEmpty()) {
-            return List.of();
+            return Page.empty();
         }
-        return fileRepository.findByNormalizedName(FileItem.normalizeName(name.trim()));
+        return fileRepository.findByNormalizedName(FileItem.normalizeName(name.trim()), searchPage(page, size));
     }
 
-    public List<FileItem> searchFilesByNameInFolder(String name, String parentId) {
+    public Page<FileItem> searchFilesByNameInFolder(String name, String parentId, int page, int size) {
         if (name == null || name.trim().isEmpty()) {
-            return List.of();
+            return Page.empty();
         }
         return fileRepository.findByNormalizedNameAndParentId(
-                FileItem.normalizeName(name.trim()), normalizeParentId(parentId));
+                FileItem.normalizeName(name.trim()), normalizeParentId(parentId), searchPage(page, size));
+    }
+
+    private PageRequest searchPage(int page, int size) {
+        if (page < 0 || size < 1) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "Page must be non-negative and size must be positive");
+        }
+        return PageRequest.of(page, size, Sort.by(Sort.Order.asc("normalizedName"), Sort.Order.asc("id")));
     }
 
     public List<FileItem> getAutocompleteSuggestions(String namePrefix) {

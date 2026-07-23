@@ -8,24 +8,36 @@ function App() {
   const [folderPath, setFolderPath] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [hasNextPage, setHasNextPage] = useState(false);
+  const [actionLoading, setActionLoading] = useState(null);
   const [error, setError] = useState(null);
   const [backendError, setBackendError] = useState(false);
   const currentFolder = folderPath.at(-1)?.id ?? null;
 
-  const fetchFiles = useCallback(async () => {
-    setLoading(true);
+  const fetchFiles = useCallback(async (page = 0, append = false) => {
+    if (append) {
+      setLoadingMore(true);
+    } else {
+      setLoading(true);
+    }
     setError(null);
     setBackendError(false);
     try {
       const query = searchQuery.trim();
       const response = query
         ? await api.get('/files/search', {
-            params: currentFolder ? { name: query, exact: true, parentId: currentFolder } : { name: query, exact: true }
+            params: currentFolder
+              ? { name: query, exact: true, parentId: currentFolder, page, size: 100 }
+              : { name: query, exact: true, page, size: 100 }
           })
         : await api.get('/files', {
-            params: currentFolder ? { parentId: currentFolder } : {}
+            params: currentFolder ? { parentId: currentFolder, page, size: 100 } : { page, size: 100 }
           });
-      setFiles(query ? response.data : response.data.content);
+      setFiles((existingFiles) => append ? [...existingFiles, ...response.data.content] : response.data.content);
+      setCurrentPage(response.data.number);
+      setHasNextPage(!response.data.last);
       setBackendError(false);
     } catch (err) {
       if (err.response?.status === 404 || err.code === 'ERR_NETWORK' || !err.response) {
@@ -34,50 +46,81 @@ function App() {
       } else {
         setError('Failed to load files: ' + err.message);
       }
-      setFiles([]);
-      console.error(err);
+      if (!append) {
+        setFiles([]);
+        setHasNextPage(false);
+      }
+      if (process.env.NODE_ENV === 'development') {
+        console.error(err);
+      }
     } finally {
-      setLoading(false);
+      if (append) {
+        setLoadingMore(false);
+      } else {
+        setLoading(false);
+      }
     }
   }, [currentFolder, searchQuery]);
 
   useEffect(() => {
-    fetchFiles();
+    fetchFiles(0);
   }, [fetchFiles]);
 
   const handleCreateFile = async (name) => {
+    if (actionLoading) return;
+    setActionLoading('create-file');
     try {
       await api.post('/files', { name, ...(currentFolder ? { parentId: currentFolder } : {}) });
-      fetchFiles();
+      fetchFiles(0);
     } catch (err) {
       setError('Failed to create file: ' + err.message);
+    } finally {
+      setActionLoading(null);
     }
   };
 
   const handleCreateFolder = async (name) => {
+    if (actionLoading) return;
+    setActionLoading('create-folder');
     try {
       await api.post('/folders', { name, ...(currentFolder ? { parentId: currentFolder } : {}) });
-      fetchFiles();
+      fetchFiles(0);
     } catch (err) {
       setError('Failed to create folder: ' + err.message);
+    } finally {
+      setActionLoading(null);
     }
   };
 
   const handleRename = async (fileId, newName) => {
+    if (actionLoading) return;
+    setActionLoading(`rename:${fileId}`);
     try {
       await api.patch(`/files/${fileId}`, { name: newName });
-      fetchFiles();
+      fetchFiles(0);
     } catch (err) {
       setError('Failed to rename: ' + err.message);
+    } finally {
+      setActionLoading(null);
     }
   };
 
   const handleDelete = async (fileId) => {
+    if (actionLoading) return;
+    setActionLoading(`delete:${fileId}`);
     try {
       await api.delete(`/files/${fileId}`);
-      fetchFiles();
+      fetchFiles(0);
     } catch (err) {
       setError('Failed to delete: ' + err.message);
+    } finally {
+      setActionLoading(null);
+    }
+  };
+
+  const handleLoadMore = () => {
+    if (hasNextPage && !loadingMore) {
+      fetchFiles(currentPage + 1, true);
     }
   };
 
@@ -107,6 +150,10 @@ function App() {
           <FileExplorer
             files={files}
             loading={loading}
+            loadingMore={loadingMore}
+            hasNextPage={hasNextPage}
+            actionLoading={actionLoading}
+            onLoadMore={handleLoadMore}
             currentFolder={currentFolder}
             folderPath={folderPath}
             onNavigateToFolder={handleNavigateToFolder}

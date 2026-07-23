@@ -28,7 +28,7 @@ test('renders the full path and navigates to selected breadcrumb levels', () => 
 
   fireEvent.click(screen.getByRole('button', { name: 'Root Folder' }));
   fireEvent.click(screen.getByRole('button', { name: 'Docs' }));
-  fireEvent.click(screen.getByRole('button', { name: 'Back' }));
+  fireEvent.click(screen.getByRole('button', { name: 'Go back' }));
 
   expect(props.onNavigateToFolder).toHaveBeenNthCalledWith(1, -1);
   expect(props.onNavigateToFolder).toHaveBeenNthCalledWith(2, 0);

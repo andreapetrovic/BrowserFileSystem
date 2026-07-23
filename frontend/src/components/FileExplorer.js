@@ -7,6 +7,10 @@ import api from '../services/api';
 const FileExplorer = ({
   files,
   loading,
+  loadingMore,
+  hasNextPage,
+  actionLoading,
+  onLoadMore,
   currentFolder,
   folderPath,
   onNavigateToFolder,
@@ -82,6 +86,7 @@ const FileExplorer = ({
         setSearchQuery={setSearchQuery}
         suggestions={suggestions}
         onSelectSuggestion={handleSelectSuggestion}
+        actionLoading={actionLoading}
       />
 
       {loading ? (
@@ -92,7 +97,13 @@ const FileExplorer = ({
           onOpenFolder={onOpenFolder}
           onRename={onRename}
           onDelete={onDelete}
+          actionLoading={actionLoading}
         />
+      )}
+      {!loading && hasNextPage && (
+        <button type="button" className="load-more-btn" onClick={onLoadMore} disabled={loadingMore}>
+          {loadingMore ? 'Loading...' : 'Load more'}
+        </button>
       )}
     </div>
   );

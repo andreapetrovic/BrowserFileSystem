@@ -16,13 +16,18 @@ const ActionBar = ({
   searchQuery,
   setSearchQuery,
   suggestions,
-  onSelectSuggestion
+  onSelectSuggestion,
+  actionLoading
 }) => {
+  const isBusy = Boolean(actionLoading);
+  const isCreatingFile = actionLoading === 'create-file';
+  const isCreatingFolder = actionLoading === 'create-folder';
+
   return (
     <div className="action-bar">
       <div className="breadcrumb">
         {currentFolder && (
-          <button className="back-btn" onClick={onGoBack} title="Go back">
+          <button className="back-btn" onClick={onGoBack} title="Go back" aria-label="Go back">
             <FiArrowLeft size={20} />
             Back
           </button>
@@ -52,10 +57,13 @@ const ActionBar = ({
             type="text"
             placeholder="File name..."
             value={newFileName}
+            disabled={isBusy}
             onChange={(e) => setNewFileName(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && onCreateFile()}
+            onKeyDown={(e) => e.key === 'Enter' && onCreateFile()}
           />
-          <button onClick={onCreateFile}>Create File</button>
+          <button onClick={onCreateFile} disabled={isBusy}>
+            {isCreatingFile ? 'Creating...' : 'Create File'}
+          </button>
         </div>
 
         <div className="input-group">
@@ -63,10 +71,13 @@ const ActionBar = ({
             type="text"
             placeholder="Folder name..."
             value={newFolderName}
+            disabled={isBusy}
             onChange={(e) => setNewFolderName(e.target.value)}
-            onKeyPress={(e) => e.key === 'Enter' && onCreateFolder()}
+            onKeyDown={(e) => e.key === 'Enter' && onCreateFolder()}
           />
-          <button onClick={onCreateFolder}>Create Folder</button>
+          <button onClick={onCreateFolder} disabled={isBusy}>
+            {isCreatingFolder ? 'Creating...' : 'Create Folder'}
+          </button>
         </div>
       </div>
 
@@ -75,6 +86,7 @@ const ActionBar = ({
         <input
           type="text"
           placeholder="Search files..."
+          aria-label="Search files"
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />

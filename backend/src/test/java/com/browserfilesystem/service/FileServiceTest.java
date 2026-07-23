@@ -93,17 +93,18 @@ class FileServiceTest {
     void separatesExactSearchFromPrefixAutocompleteAndLimitsAutocompleteInDatabase() {
         FileItem exact = item("exact", "Readme", null, "/exact/", false);
         FileItem suggestion = item("suggestion", "Reader", null, "/suggestion/", false);
-        when(fileRepository.findByNormalizedName("readme")).thenReturn(List.of(exact));
+        when(fileRepository.findByNormalizedName(eq("readme"), any(Pageable.class)))
+                .thenReturn(new PageImpl<>(List.of(exact)));
         when(fileRepository.findByNormalizedNameStartingWithAndFolderFalse(eq("rea"), any(Pageable.class)))
                 .thenReturn(new PageImpl<>(List.of(suggestion)));
 
-        assertThat(fileService.searchFilesByName("README")).containsExactly(exact);
+        assertThat(fileService.searchFilesByName("README", 0, 100).getContent()).containsExactly(exact);
         assertThat(fileService.getAutocompleteSuggestions("rea")).containsExactly(suggestion);
 
         verify(fileRepository).findByNormalizedNameStartingWithAndFolderFalse(eq("rea"), pageableCaptor.capture());
         assertThat(pageableCaptor.getValue().getPageSize()).isEqualTo(10);
         assertThat(pageableCaptor.getValue().getSort().getOrderFor("normalizedName")).isNotNull();
-        verify(fileRepository, never()).findByNormalizedName("rea");
+        verify(fileRepository, never()).findByNormalizedName(eq("rea"), any(Pageable.class));
     }
 
     private static FileItem item(String id, String name, String parentId, String path, boolean folder) {

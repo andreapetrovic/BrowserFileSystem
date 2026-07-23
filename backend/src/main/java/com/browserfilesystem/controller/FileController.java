@@ -63,20 +63,26 @@ public class FileController {
     }
 
     @GetMapping("/search")
-    public ResponseEntity<List<FileItemResponse>> searchFiles(
+    public ResponseEntity<?> searchFiles(
             @RequestParam @NotBlank String name,
             @RequestParam(defaultValue = "true") boolean exact,
-            @RequestParam(required = false) String parentId) {
-        List<FileItemResponse> results = (exact
-                ? (parentId == null
-                    ? fileService.searchFilesByName(name)
-                    : fileService.searchFilesByNameInFolder(name, parentId))
-                : (parentId == null
-                    ? fileService.getAutocompleteSuggestions(name)
-                    : fileService.getAutocompleteSuggestionsInFolder(name, parentId)))
+            @RequestParam(required = false) String parentId,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "100") @Min(1) @Max(100) int size) {
+        if (exact) {
+            Page<FileItemResponse> results = (parentId == null
+                    ? fileService.searchFilesByName(name, page, size)
+                    : fileService.searchFilesByNameInFolder(name, parentId, page, size))
+                    .map(FileItemResponse::from);
+            return ResponseEntity.ok(results);
+        }
+
+        List<FileItemResponse> suggestions = (parentId == null
+                ? fileService.getAutocompleteSuggestions(name)
+                : fileService.getAutocompleteSuggestionsInFolder(name, parentId))
                 .stream()
                 .map(FileItemResponse::from)
                 .toList();
-        return ResponseEntity.ok(results);
+        return ResponseEntity.ok(suggestions);
     }
 }

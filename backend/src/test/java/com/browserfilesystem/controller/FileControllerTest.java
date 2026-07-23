@@ -84,7 +84,8 @@ class FileControllerTest {
         FileItem renamed = item("file", "renamed.txt", null, "/file/", false);
         when(fileService.createFolder("Docs", null)).thenReturn(folder);
         when(fileService.renameFile("file", "renamed.txt")).thenReturn(Optional.of(renamed));
-        when(fileService.searchFilesByName("renamed.txt")).thenReturn(List.of(renamed));
+        when(fileService.searchFilesByName("renamed.txt", 0, 100))
+                .thenReturn(new PageImpl<>(List.of(renamed), PageRequest.of(0, 100), 1));
 
         mockMvc.perform(post("/api/folders")
                         .contentType(MediaType.APPLICATION_JSON)
@@ -98,7 +99,7 @@ class FileControllerTest {
                 .andExpect(jsonPath("$.name").value("renamed.txt"));
         mockMvc.perform(get("/api/files/search?name=renamed.txt&exact=true"))
                 .andExpect(status().isOk())
-                .andExpect(jsonPath("$[0].name").value("renamed.txt"));
+                .andExpect(jsonPath("$.content[0].name").value("renamed.txt"));
     }
 
     private static FileItem item(String id, String name, String parentId, String path, boolean folder) {

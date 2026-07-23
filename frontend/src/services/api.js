@@ -1,5 +1,7 @@
 import axios from 'axios';
 
+const isDevelopment = process.env.NODE_ENV === 'development';
+
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:8080/api';
 
 const api = axios.create({
@@ -12,7 +14,9 @@ const api = axios.create({
 // Add request interceptor for logging
 api.interceptors.request.use(
   (request) => {
-    console.log('API Request:', request.method.toUpperCase(), request.url);
+    if (isDevelopment) {
+      console.log('API Request:', request.method.toUpperCase(), request.url);
+    }
     return request;
   },
   (error) => Promise.reject(error)
@@ -21,11 +25,15 @@ api.interceptors.request.use(
 // Add response interceptor for logging
 api.interceptors.response.use(
   (response) => {
-    console.log('API Response:', response.status, response.data);
+    if (isDevelopment) {
+      console.log('API Response:', response.status, response.data);
+    }
     return response;
   },
   (error) => {
-    console.error('API Error:', error.response?.status, error.response?.data || error.message);
+    if (isDevelopment) {
+      console.error('API Error:', error.response?.status, error.response?.data || error.message);
+    }
     return Promise.reject(error);
   }
 );

@@ -2,7 +2,7 @@ import React from 'react';
 import './css/FileList.css';
 import FileItem from './FileItem';
 
-const FileList = ({ files, onOpenFolder, onRename, onDelete }) => {
+const FileList = ({ files, onOpenFolder, onRename, onDelete, actionLoading }) => {
   if (files.length === 0) {
     return <div className="empty-state">No files or folders here</div>;
   }
@@ -22,6 +22,7 @@ const FileList = ({ files, onOpenFolder, onRename, onDelete }) => {
           onOpenFolder={onOpenFolder}
           onRename={onRename}
           onDelete={onDelete}
+          actionLoading={actionLoading}
         />
       ))}
     </div>
